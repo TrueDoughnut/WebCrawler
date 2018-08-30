@@ -1,6 +1,5 @@
 import mechanicalsoup
 import os
-import re
 
 # create browser object
 browser = mechanicalsoup.StatefulBrowser()
@@ -18,5 +17,9 @@ def download_file(url):
 browser.open("https://github.com/")
 download_file(browser.get_url())
 
-print(browser.links(href=re.compile("github.com")))
+# get all links
+links = []
+for x in browser.get_current_page().find_all('a'):
+    links.append(x.get('href'))
+
 
