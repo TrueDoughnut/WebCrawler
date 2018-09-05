@@ -4,10 +4,11 @@ import os
 downloaded_urls = []
 scraped_urls = []
 
+base_url = ""
+
 # downloads a file with the url as a name
 def download_file(url, browser):
-    print(url)
-    path = "downloads\\" + url[:-1].replace("https://", "").replace("/", "+") + ".html"
+    path = "downloads\\" + url.replace("https://", "").replace("/", "+") + ".html"
 
     # remove pluses at beginning of filename
     for i in range(0, len(path)):
@@ -28,12 +29,12 @@ def download_file(url, browser):
         browser.open("https" + browser.get_url())
 
     # make sure url is webpage, not file
-    file_endings = [".mp3"]
+    file_endings = [".mp3", ".png", ".gif"]
     for file_ending in file_endings:
         current_ending = path[len(path)-len(file_ending)-4:]
-        print(current_ending)
         if file_ending in current_ending:
             scraped_urls.append(url)
+            print("found ending")
             return
 
     # create file
@@ -42,6 +43,7 @@ def download_file(url, browser):
 
     # download browser
     browser.download_link(file=path)
+    print("downloading")
     downloaded_urls.append(url)
 
 # has the url been downloaded
@@ -56,15 +58,15 @@ def download_all_links_on_page(initial_url, function_browser):
     # only use links that have initial url in url
     temp = set() # set to remove duplicates
     for x in links:
-        if initial_url.replace("https://www", "") in x:
+        if base_url in x:
             temp.add(x)
     links = temp
-    print(links)
     # download all pages linked on this page
     for x in links:
         if not downloaded(x):
             download_file(str(x), function_browser)
     scraped_urls.append(initial_url)
+    print("added to scraped")
 
 def array_equality():
     if len(downloaded_urls) != len(scraped_urls):
@@ -75,12 +77,14 @@ def array_equality():
     return True
 
 def run():
-    initial_url = "https://www.madebyfew.com/"
+    initial_url = "http://www.pmichaud.com/"
 
     # create browser object
     browser = mechanicalsoup.StatefulBrowser()
     # change directory to access downloads folder
     os.chdir("..\\..\\..")
+    global base_url
+    base_url = initial_url.replace("http://www", "").replace("https://www", "")
     # open starting page
     browser.open(initial_url)
     download_all_links_on_page(initial_url, browser)
@@ -89,9 +93,8 @@ def run():
     while not array_equality():
         urls = list(set(scraped_urls).symmetric_difference(set(downloaded_urls)))
         for url in urls:
-            print(urls)
             download_all_links_on_page(url, browser)
-            print("next page")
+            print("next page", urls)
 
 if __name__ == '__main__':
     run()
